@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ site_title }}</title>
+    <link rel="stylesheet" href="/static/fontawesome-free-6.7.2-web/css/all.min.css">
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="app">
+        <header class="app-header">
+            <div class="header-content">
+                <h1 class="app-title">{{ site_title }}</h1>
+                <p class="app-subtitle">安全的文件上传与分享平台</p>
+            </div>
+        </header>
+
+        <main class="app-main">
+            <div class="files-section">
+                <div class="files-container">
+                    <div class="files-header">
+                        <h2><i class="fas fa-folder-open"></i> 共享文件</h2>
+                        <div class="files-count">
+                            {% if temp_files %}
+                                {{ temp_files|length }} 个文件
+                            {% else %}
+                                暂无文件
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="files-content">
+                        {% if temp_files %}
+                        <div class="files-grid">
+                            {% for file in temp_files %}
+                            <div class="file-card">
+                                <div class="file-card-main">
+                                    <div class="file-card-header">
+                                        <div class="file-card-left">
+                                            <div class="file-icon-wrapper">
+                                                <div class="file-icon-bg">
+                                                    <i class="fas fa-{{ file.icon }} file-icon-primary"></i>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="file-card-center">
+                                            <h3 class="file-name-primary">
+                                                {% if file.has_password %}
+                                                <i class="fas fa-lock file-lock-inline"></i>
+                                                {% endif %}
+                                                {{ file.name }}
+                                            </h3>
+                                        </div>
+                                    </div>
+                                    <div class="file-card-content">
+                                        {% if file.description %}
+                                        <p class="file-description">{{ file.description }}</p>
+                                        {% endif %}
+                                        <div class="file-meta-info">
+                                            <span class="file-size"><i class="fas fa-save"></i> {{ file.formatted_size }}</span>
+                                            <span class="file-time"><i class="far fa-clock"></i> {{ file.upload_time }}</span>
+                                            {% if file.remaining_time %}
+                                            <span class="file-expiry"><i class="fas fa-hourglass-half"></i> {{ file.remaining_time }}</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="file-card-actions">
+                                    <a href="/download/{{ file.filename }}" class="download-btn-primary">
+                                        <i class="fas fa-download"></i>
+                                        <span>下载文件</span>
+                                    </a>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <div class="empty-files">
+                            <div class="empty-icon">
+                                <i class="fas fa-folder-open"></i>
+                            </div>
+                            <h3>还没有文件</h3>
+                            <p>上传一些文件开始分享吧</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Floating Action Button -->
+            <button class="fab" id="uploadFab" title="上传文件">
+                <i class="fas fa-plus"></i>
+            </button>
+        </main>
+
+        <footer class="app-footer">
+            <p>© {{ now().year }} {{ site_title }} - 文件将在指定时间后自动删除</p>
+        </footer>
+    </div>
+
+    <!-- 上传模态框 -->
+    <div id="uploadModal" class="upload-modal">
+        <div class="upload-modal-backdrop" id="uploadModalBackdrop"></div>
+        <div class="upload-modal-content">
+            <div class="upload-modal-header">
+                <h2><i class="fas fa-cloud-upload-alt"></i> 上传文件</h2>
+                <button class="upload-modal-close" id="uploadModalClose">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="upload-modal-body">
+                <form method="post" enctype="multipart/form-data" id="uploadForm">
+                    <div class="dropzone-container">
+                        <label for="file" class="dropzone" id="dropzone">
+                            <div class="dropzone-content">
+                                <i class="fas fa-cloud-upload-alt dropzone-icon"></i>
+                                <h3>拖拽文件到这里</h3>
+                                <p>或点击选择文件 (支持多选)</p>
+                                <div class="file-hint">最大文件大小：无限制</div>
+                            </div>
+                        </label>
+                        <input type="file" name="file" id="file" required multiple style="display: none;">
+                    </div>
+
+                    <div class="upload-options">
+                        <div class="option-row">
+                            <div class="option-group">
+                                <label for="expiration">文件有效期</label>
+                                <select name="expiration" id="expiration">
+                                    <option value="1">1 小时</option>
+                                    <option value="3">3 小时</option>
+                                    <option value="8">8 小时</option>
+                                    <option value="24" selected>24 小时</option>
+                                    <option value="72">3 天</option>
+                                    <option value="168">7 天</option>
+                                    <option value="720">30 天</option>
+                                    <option value="2160">90 天</option>
+                                    <option value="8760">365 天</option>
+                                </select>
+                            </div>
+                            <div class="option-group">
+                                <label for="password">下载密码 (可选)</label>
+                                <input type="password" name="password" id="password" placeholder="留空则公开访问">
+                            </div>
+                        </div>
+                        <div class="option-group">
+                            <label for="description">文件描述 (可选)</label>
+                            <textarea name="description" id="description" placeholder="为文件添加描述信息..."></textarea>
+                        </div>
+                    </div>
+
+                    <div class="file-list" id="file-list"></div>
+
+                    <div class="upload-actions">
+                        <button type="submit" class="upload-btn">
+                            <i class="fas fa-upload"></i>
+                            开始上传
+                        </button>
+                        <div class="upload-summary" id="upload-summary">
+                            <span id="upload-count">0</span> 个文件，共 <span id="completed-count">0</span> 个完成
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 消息弹窗 -->
+    <div id="messageModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">提示</h2>
+            </div>
+            <div class="modal-body">
+                <p id="modalMessage">这里是消息内容</p>
+            </div>
+            <div class="modal-footer">
+                <button class="close-btn" id="modalCloseBtn">确定</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Upload modal functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const uploadFab = document.getElementById('uploadFab');
+            const uploadModal = document.getElementById('uploadModal');
+            const uploadModalBackdrop = document.getElementById('uploadModalBackdrop');
+            const uploadModalClose = document.getElementById('uploadModalClose');
+
+            // Open modal
+            uploadFab.addEventListener('click', function() {
+                uploadModal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            });
+
+            // Close modal functions
+            function closeModal() {
+                uploadModal.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+
+            uploadModalClose.addEventListener('click', closeModal);
+            uploadModalBackdrop.addEventListener('click', closeModal);
+
+            // Close on ESC key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && uploadModal.classList.contains('active')) {
+                    closeModal();
+                }
+            });
+
+            // File name scrolling functionality
+            function setupFileNameScrolling() {
+                const fileCards = document.querySelectorAll('.file-card');
+
+                fileCards.forEach(function(card) {
+                    const fileNameEl = card.querySelector('.file-name-primary');
+                    if (!fileNameEl) return;
+
+                    let scrollInterval = null;
+
+                    function startScrolling() {
+                        if (scrollInterval) return;
+
+                        const scrollSpeed = 33; // milliseconds (1.5x faster than 50)
+                        const scrollDistance = 2; // pixels per step
+                        const pauseTime = 5000; // milliseconds to pause between scrolls (5 seconds)
+                        let currentPosition = 0;
+                        let isScrolling = true;
+                        const maxScroll = fileNameEl.scrollWidth - fileNameEl.clientWidth;
+
+                        if (maxScroll <= 0) return; // No need to scroll
+
+                        // Hide ellipsis during scrolling
+                        fileNameEl.style.textOverflow = 'unset';
+
+                        function scrollStep() {
+                            if (!isScrolling) return;
+
+                            currentPosition += scrollDistance;
+                            fileNameEl.scrollLeft = currentPosition;
+
+                            if (currentPosition >= maxScroll) {
+                                // Pause at the end
+                                isScrolling = false;
+                                setTimeout(function() {
+                                    // Reset position and start again
+                                    fileNameEl.scrollLeft = 0;
+                                    currentPosition = -fileNameEl.clientWidth;
+                                    setTimeout(function() {
+                                        isScrolling = true;
+                                    }, pauseTime);
+                                }, pauseTime);
+                            }
+                        }
+
+                        scrollInterval = setInterval(scrollStep, scrollSpeed);
+                    }
+
+                    function stopScrolling() {
+                        if (scrollInterval) {
+                            clearInterval(scrollInterval);
+                            scrollInterval = null;
+                            fileNameEl.scrollLeft = 0; // Reset to start
+                            // Restore ellipsis
+                            fileNameEl.style.textOverflow = 'ellipsis';
+                        }
+                    }
+
+                    // Start scrolling when card is hovered and text is overflowed
+                    card.addEventListener('mouseenter', function() {
+                        if (fileNameEl.scrollWidth > fileNameEl.clientWidth) {
+                            startScrolling();
+                        }
+                    });
+
+                    card.addEventListener('mouseleave', stopScrolling);
+                });
+            }
+
+            setupFileNameScrolling();
+        });
+    </script>
+    <script src="/static/js/main.js"></script>
+    <script src="/static/js/upload.js"></script>
+</body>
+</html>
