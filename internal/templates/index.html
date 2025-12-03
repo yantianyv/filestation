@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ site_title }}</title>
+    <title>{{.SiteTitle}}</title>
     <link rel="stylesheet" href="/static/fontawesome-free-6.7.2-web/css/all.min.css">
     <link rel="stylesheet" href="/static/css/style.css">
 </head>
@@ -11,7 +11,7 @@
     <div class="app">
         <header class="app-header">
             <div class="header-content">
-                <h1 class="app-title">{{ site_title }}</h1>
+                <h1 class="app-title">{{.SiteTitle}}</h1>
                 <p class="app-subtitle">安全的文件上传与分享平台</p>
             </div>
         </header>
@@ -22,60 +22,60 @@
                     <div class="files-header">
                         <h2><i class="fas fa-folder-open"></i> 共享文件</h2>
                         <div class="files-count">
-                            {% if temp_files %}
-                                {{ temp_files|length }} 个文件
-                            {% else %}
+                            {{if .TempFiles}}
+                                {{len .TempFiles}} 个文件
+                            {{else}}
                                 暂无文件
-                            {% endif %}
+                            {{end}}
                         </div>
                     </div>
 
                     <div class="files-content">
-                        {% if temp_files %}
+                        {{if .TempFiles}}
                         <div class="files-grid">
-                            {% for file in temp_files %}
+                            {{range .TempFiles}}
                             <div class="file-card">
                                 <div class="file-card-main">
                                     <div class="file-card-header">
                                         <div class="file-card-left">
                                             <div class="file-icon-wrapper">
                                                 <div class="file-icon-bg">
-                                                    <i class="fas fa-{{ file.icon }} file-icon-primary"></i>
+                                                    <i class="fas fa-{{.Icon}} file-icon-primary"></i>
                                                 </div>
                                             </div>
                                         </div>
                                         <div class="file-card-center">
                                             <h3 class="file-name-primary">
-                                                {% if file.has_password %}
+                                                {{if .HasPassword}}
                                                 <i class="fas fa-lock file-lock-inline"></i>
-                                                {% endif %}
-                                                {{ file.name }}
+                                                {{end}}
+                                                {{.OriginalFilename}}
                                             </h3>
                                         </div>
                                     </div>
                                     <div class="file-card-content">
-                                        {% if file.description %}
-                                        <p class="file-description">{{ file.description }}</p>
-                                        {% endif %}
+                                        {{if .Description}}
+                                        <p class="file-description">{{.Description}}</p>
+                                        {{end}}
                                         <div class="file-meta-info">
-                                            <span class="file-size"><i class="fas fa-save"></i> {{ file.formatted_size }}</span>
-                                            <span class="file-time"><i class="far fa-clock"></i> {{ file.upload_time }}</span>
-                                            {% if file.remaining_time %}
-                                            <span class="file-expiry"><i class="fas fa-hourglass-half"></i> {{ file.remaining_time }}</span>
-                                            {% endif %}
+                                            <span class="file-size"><i class="fas fa-save"></i> {{.FormattedSize}}</span>
+                                            <span class="file-time"><i class="far fa-clock"></i> {{formatDate .UploadTime}}</span>
+                                            {{if .RemainingTime}}
+                                            <span class="file-expiry"><i class="fas fa-hourglass-half"></i> {{.RemainingTime}}</span>
+                                            {{end}}
                                         </div>
                                     </div>
                                 </div>
                                 <div class="file-card-actions">
-                                    <a href="/download/{{ file.filename }}" class="download-btn-primary">
+                                    <a href="/download/{{.Filename}}" class="download-btn-primary">
                                         <i class="fas fa-download"></i>
                                         <span>下载文件</span>
                                     </a>
                                 </div>
                             </div>
-                            {% endfor %}
+                            {{end}}
                         </div>
-                        {% else %}
+                        {{else}}
                         <div class="empty-files">
                             <div class="empty-icon">
                                 <i class="fas fa-folder-open"></i>
@@ -83,7 +83,7 @@
                             <h3>还没有文件</h3>
                             <p>上传一些文件开始分享吧</p>
                         </div>
-                        {% endif %}
+                        {{end}}
                     </div>
                 </div>
             </div>
@@ -95,7 +95,7 @@
         </main>
 
         <footer class="app-footer">
-            <p>© {{ now().year }} {{ site_title }} - 文件将在指定时间后自动删除</p>
+            <p>© {{year}} {{.SiteTitle}} - 文件将在指定时间后自动删除</p>
         </footer>
     </div>
 
@@ -141,7 +141,7 @@
                             </div>
                             <div class="option-group">
                                 <label for="password">下载密码 (可选)</label>
-                                <input type="password" name="password" id="password" placeholder="留空则公开访问">
+                                <input type="text" name="password" id="password" placeholder="留空则公开访问" autocomplete="off">
                             </div>
                         </div>
                         <div class="option-group">

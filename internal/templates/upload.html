@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>上传文件 - {{ site_title }}</title>
+    <title>上传文件 - {{.SiteTitle}}</title>
     <link rel="stylesheet" href="/static/fontawesome-free-6.7.2-web/css/all.min.css">
     <link rel="stylesheet" href="/static/css/style.css">
 </head>
@@ -32,7 +32,7 @@
 
                 <div class="form-group">
                     <label for="password">下载密码 (可选)</label>
-                    <input type="password" name="password" id="password" class="form-control" placeholder="留空则无需密码访问"
+                    <input type="text" name="password" id="password" class="form-control" placeholder="留空则无需密码访问" autocomplete="off"
                         style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: var(--border-radius);">
                 </div>
                 

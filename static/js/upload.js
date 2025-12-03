@@ -90,7 +90,8 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
 
         const files = Array.from(elements.fileInput.files);
-        const description = elements.description.value;
+        const descriptionEl = document.getElementById('description');
+        const description = descriptionEl ? descriptionEl.value : '';
         const submitBtn = elements.uploadForm.querySelector('button[type="submit"]');
 
         if (files.length === 0) {
@@ -159,26 +160,45 @@ document.addEventListener('DOMContentLoaded', () => {
 
             xhr.addEventListener('load', () => {
                 try {
-                    const result = JSON.parse(xhr.responseText);
-                    if (result.success) {
-                        updateFileStatus(index, 'success', 100);
-                        state.completedUploads++;
-                        elements.completedCount.textContent = state.completedUploads;
+                    if (xhr.status === 200) {
+                        const result = JSON.parse(xhr.responseText);
+                        if (result.success) {
+                            updateFileStatus(index, 'success', 100);
+                            state.completedUploads++;
+                            elements.completedCount.textContent = state.completedUploads;
 
-                        if (state.completedUploads === state.uploads.length) {
-                            showModal('上传完成', `所有文件上传成功！共 ${state.completedUploads} 个文件`, 'success');
-                            resetUpload();
-                            elements.uploadForm.reset();
+                            // Check if all uploads are completed
+                            if (state.completedUploads >= state.uploads.length) {
+                                // Small delay to show success status, then refresh
+                                setTimeout(() => {
+                                    // If we're on the index page (has upload modal), reload the page
+                                    const uploadModal = document.getElementById('uploadModal');
+                                    if (uploadModal) {
+                                        // Close modal first, then reload
+                                        uploadModal.classList.remove('active');
+                                        document.body.style.overflow = '';
+                                        window.location.reload();
+                                    } else {
+                                        // If we're on the upload page, redirect to index
+                                        window.location.href = '/';
+                                    }
+                                }, 800);
+                            }
+                            resolve(result);
+                        } else {
+                            updateFileStatus(index, 'error', 0, result.message || '上传失败');
+                            state.completedUploads++;
+                            elements.completedCount.textContent = state.completedUploads;
+                            reject(new Error(result.message || '上传失败'));
                         }
-                        resolve(result);
                     } else {
-                        updateFileStatus(index, 'error', 0, result.message);
+                        updateFileStatus(index, 'error', 0, '服务器错误: ' + xhr.status);
                         state.completedUploads++;
                         elements.completedCount.textContent = state.completedUploads;
-                        reject(new Error(result.message));
+                        reject(new Error('Server error: ' + xhr.status));
                     }
                 } catch (error) {
-                    updateFileStatus(index, 'error', 0, '解析响应失败');
+                    updateFileStatus(index, 'error', 0, '解析响应失败: ' + error.message);
                     state.completedUploads++;
                     elements.completedCount.textContent = state.completedUploads;
                     reject(error);

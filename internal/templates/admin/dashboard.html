@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理面板 - {{.SiteTitle}}</title>
+    <link rel="stylesheet" href="/static/fontawesome-free-6.7.2-web/css/all.min.css">
+    <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        .admin-header {
+            background: white;
+            padding: 1.5rem;
+            border-radius: var(--border-radius);
+            margin-bottom: 2rem;
+            box-shadow: var(--box-shadow);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .admin-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .file-table {
+            background: white;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: var(--box-shadow);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        th {
+            background: #f5f5f5;
+            font-weight: 600;
+        }
+
+        .delete-btn {
+            color: #c62828;
+            cursor: pointer;
+            padding: 0.5rem 1rem;
+            border-radius: var(--border-radius);
+            border: none;
+            background: #ffebee;
+        }
+
+        .delete-btn:hover {
+            background: #ffcdd2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="admin-header">
+            <h1><i class="fas fa-cog"></i> 管理面板</h1>
+            <div class="admin-actions">
+                <a href="/admin/password" class="btn"><i class="fas fa-key"></i> 修改密码</a>
+                <a href="/admin/logout" class="btn"><i class="fas fa-sign-out-alt"></i> 退出</a>
+            </div>
+        </div>
+
+        <div class="file-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th>文件名</th>
+                        <th>大小</th>
+                        <th>上传时间</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{range .Files}}
+                    <tr>
+                        <td>{{.OriginalFilename}}</td>
+                        <td>{{.FormattedSize}}</td>
+                        <td>{{formatDate .UploadTime}}</td>
+                        <td>
+                            <form method="post" action="/admin/delete/{{.Filename}}" style="display: inline;">
+                                <button type="submit" class="delete-btn" onclick="return confirm('确定要删除这个文件吗？')">
+                                    <i class="fas fa-trash"></i> 删除
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {{else}}
+                    <tr>
+                        <td colspan="4" style="text-align: center; padding: 2rem;">暂无文件</td>
+                    </tr>
+                    {{end}}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>
+
